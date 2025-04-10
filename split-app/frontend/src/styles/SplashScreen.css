@@ -1,0 +1,18 @@
+/* SplashScreen.css */
+
+.pulse-animation {
+    animation: pulse 7s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(3.0); /* Slightly larger */
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
