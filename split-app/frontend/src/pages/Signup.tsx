@@ -3,7 +3,9 @@ import Button from "../components/Button";
 import appIcon from "../assets/images/AppIcon.svg";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { FiEye, FiEyeOff } from "react-icons/fi"; // Eye icons for password fields
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,10 @@ const Signup: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+
+  const navigate = useNavigate();
+
 
   // Handle Input Change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,12 +31,31 @@ const Signup: React.FC = () => {
   const handlePhoneChange = (value: string) => {
     setFormData({ ...formData, phoneNumber: value });
   };
+  
+
 
   // Handle Form Submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup Data:", formData);
+    setIsLoading(true); // Start loading immediately
+  
+    try {
+      console.log("Signup Data:", formData);
+  
+      // 👉 simulate signup process (e.g., API call)
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // simulate 1.5s delay
+  
+      toast.success("Signup successful! 🎉");
+      setIsLoading(false);
+  
+      navigate("/signup-success");
+    } catch (error) {
+      console.error(error);
+      toast.error("Signup failed. Try again.");
+      setIsLoading(false);
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col bg-[#182338] text-white p-6">
@@ -116,10 +141,12 @@ const Signup: React.FC = () => {
 
           {/* Signup Button */}
           <Button
-            text="Verify"
-            type="submit"
-            className="mt-6 w-full bg-pink-500 text-white text-lg py-3 hover:bg-pink-600 rounded-full"
-          />
+  text={isLoading ? "Loading..." : "Verify"}
+  type="submit"
+  disabled={isLoading}
+  className="mt-6 w-full bg-pink-500 text-white text-lg py-3 hover:bg-pink-600 rounded-full"
+/>
+
         </form>
         </div>
 

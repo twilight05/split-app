@@ -1,35 +1,25 @@
-
-
-
-
-import React, { useState, useEffect } from "react";
-// import SplashScreen from "./components/SplashScreen";
-// import Onboarding from "./components/Onboarding";
-// import Signup from "./pages/Signup";
-// import Verification from "./pages/Verification";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import SplashScreen from "./pages/SplashScreen";
+import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import SignupSuccess from "./pages/SignupSuccess";
+import Dashboard from "./pages/Dashboard";
 
-const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
 
-  // Simulate a delay (SplashScreen will be shown for 7 seconds)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false); // After 7 seconds, switch to onboarding screen
-    }, 7000);
-    return () => clearTimeout(timer); // Cleanup the timer if the component unmounts
-  }, []);
-
+const App = () => {
   return (
-    <div className="App">
-      {/* Show SplashScreen for 7 seconds, then switch to Onboarding */}
-      {/* {showSplash ? <SplashScreen /> : <Onboarding />} */}
-      {/* <Signup /> */}
-      {/* <Verification /> */}
-      <Login />
-       
-     
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<SplashScreen />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/signup-success" element={<SignupSuccess />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
+      </Routes>
+    </Router>
   );
 };
 

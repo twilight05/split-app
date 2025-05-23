@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 @import "tailwindcss"; 
+
+/* global.css or Tailwind base */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
