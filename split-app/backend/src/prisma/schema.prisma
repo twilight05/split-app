@@ -1,0 +1,36 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String      // hashed
+  wallets    Wallet[]    // includes the “main” wallet and all sub-wallets
+  createdAt  DateTime    @default(now())
+}
+
+model Wallet {
+  id           String          @id @default(uuid())
+  user         User            @relation(fields: [userId], references: [id])
+  userId       String
+  name         String          // e.g. "Main", "Savings", "Emergency", etc.
+  isMain       Boolean         @default(false)
+  percentage   Int?            // null for main, 0–100 for sub-wallets
+  balance      Decimal         @default(0.0)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id           String    @id @default(uuid())
+  wallet       Wallet    @relation(fields: [walletId], references: [id])
+  walletId     String
+  amount       Decimal   // positive for credit, negative for debit
+  type         String    // e.g. "deposit", "split", "transfer"
+  createdAt    DateTime  @default(now())
+}

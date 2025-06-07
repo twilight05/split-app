@@ -37,24 +37,36 @@ const Signup: React.FC = () => {
   // Handle Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading immediately
+    setIsLoading(true); 
+    const { email, password, confirmPassword } = formData;
+    
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
   
     try {
-      console.log("Signup Data:", formData);
-  
-      // 👉 simulate signup process (e.g., API call)
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // simulate 1.5s delay
-  
-      toast.success("Signup successful! 🎉");
-      setIsLoading(false);
-  
-      navigate("/signup-success");
-    } catch (error) {
-      console.error(error);
-      toast.error("Signup failed. Try again.");
-      setIsLoading(false);
+      const response = await fetch("http://localhost:4000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Signup failed");
     }
-  };
+
+      toast.success("Signup successful! 🎉");
+    navigate("/signup-success");
+  } catch (error: any) {
+    toast.error(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
 
   return (

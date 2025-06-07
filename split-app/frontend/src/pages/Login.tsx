@@ -12,6 +12,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+const [phoneNumber, setPhoneNumber] = useState("");
+const [password, setPassword] = useState("");
+
 
 
   const handleLogin = (e: React.FormEvent) => {
