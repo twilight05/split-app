@@ -5,30 +5,50 @@ import appIcon from "../assets/images/AppIcon.svg";
 import fingerprint from "../assets/images/fingerprint.svg";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { FaSpinner } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [isEmailLogin, setIsEmailLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
   const [email, setEmail] = useState("");
-const [phoneNumber, setPhoneNumber] = useState("");
-const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
 
-
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate login delay
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: isEmailLogin ? email : undefined,
+          phoneNumber: !isEmailLogin ? phoneNumber : undefined,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Save token to localStorage:
+      localStorage.setItem("token", data.token);
+
+      // Navigate to dashboard:
+      navigate("/dashboard");
+
+    } catch (error: any) {
+      alert(error.message); 
+    } finally {
       setLoading(false);
-            // on success, send user to dashboard
-            navigate("/dashboard");
-          }, 1500);
-      
+    }
   };
 
   return (
@@ -61,24 +81,23 @@ const [password, setPassword] = useState("");
                 transition={{ duration: 0.3 }}
                 type="email"
                 placeholder="someone1234@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
               />
             ) : (
-              <motion.div
+              <motion.input
                 key="phone"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3 }}
-                className="flex items-center justify-between border-b border-gray-500 py-2"
-              >
-                <span className="text-gray-400">+234</span>
-                <input
-                  type="tel"
-                  placeholder="903 401 2507"
-                  className="w-full bg-transparent focus:outline-none text-center"
-                />
-              </motion.div>
+                type="tel"
+                placeholder="903 401 2507"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
+              />
             )}
           </AnimatePresence>
 
@@ -95,6 +114,8 @@ const [password, setPassword] = useState("");
             <input
               type={showPassword ? "text" : "password"}
               placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
             />
             <div

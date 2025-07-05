@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bell } from "lucide-react"; // Install: npm install lucide-react
+import { Bell } from "lucide-react"; 
 
 const wallets = [
   { name: "Main Balance", amount: "₦100,000", color: "bg-indigo-600" },
