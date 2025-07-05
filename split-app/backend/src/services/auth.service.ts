@@ -1,7 +1,6 @@
-// services/auth.service.ts
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { prisma } from "../prisma/prisma";
+import { prisma } from "../../prisma/prisma";
 
 export const signupService = async (email: string, password: string) => {
   const existing = await prisma.user.findUnique({ where: { email } });

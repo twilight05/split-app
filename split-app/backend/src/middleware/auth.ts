@@ -1,22 +1,42 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+interface JwtPayload {
+  userId: string;
+}
 
+export interface AuthRequest extends Request {
+  userId?: string;
+}
+
+export const authenticateToken = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  let token: string | undefined;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
   if (!token) {
-     res.sendStatus(401);
-     return;
+    return next(res.status(401).json({ message: "No token provided" }));
   }
 
-  jwt.verify(token, process.env.JWT_SECRET!, (err, decoded: any) => {
-    if (err) {
-        res.sendStatus(403);
-        return;
-    }
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET!
+    ) as JwtPayload;
 
-    (req as any).userId = decoded.userId;
-    next();
-  });
+    req.userId = decoded.userId;
+
+next();
+
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      return next(res.status(401).json({ message: "Token expired" }));
+    }
+    return next(res.status(403).json({ message: "Invalid or expired token" }));
+  }
 };

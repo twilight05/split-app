@@ -1,10 +1,10 @@
-// controllers/auth.controller.ts
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   signupService,
   loginService,
   getProfileService,
 } from "../services/auth.service";
+import { AuthRequest } from "../middleware/auth";
 
 export const signup = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -28,13 +28,13 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getProfile = async (req: Request, res: Response) => {
-  const userId = (req as any).userId;
+export const getProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const userId = req.userId!;
 
   try {
     const user = await getProfileService(userId);
     res.json({ user });
   } catch (err: any) {
-    res.status(404).json({ message: err.message || "Could not fetch profile" });
+    return next(res.status(404).json({ message: err.message || "Could not fetch profile" }));
   }
 };

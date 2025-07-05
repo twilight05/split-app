@@ -7,11 +7,22 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  SPLIT
+  TRANSFER
+}
+
+
 model User {
   id         String      @id @default(uuid())
+  name       String
+  phoneNumber String      @unique 
   email      String      @unique
   password   String      // hashed
-  wallets    Wallet[]    // includes the “main” wallet and all sub-wallets
+  wallets    Wallet[] 
+  transactions Transaction[] @relation("UserTransactions")
   createdAt  DateTime    @default(now())
 }
 
@@ -19,18 +30,21 @@ model Wallet {
   id           String          @id @default(uuid())
   user         User            @relation(fields: [userId], references: [id])
   userId       String
-  name         String          // e.g. "Main", "Savings", "Emergency", etc.
+  name         String          
   isMain       Boolean         @default(false)
-  percentage   Int?            // null for main, 0–100 for sub-wallets
+  percentage   Int?            
   balance      Decimal         @default(0.0)
   transactions Transaction[]
 }
 
 model Transaction {
-  id           String    @id @default(uuid())
-  wallet       Wallet    @relation(fields: [walletId], references: [id])
+  id           String           @id @default(uuid())
+  wallet       Wallet           @relation(fields: [walletId], references: [id])
   walletId     String
-  amount       Decimal   // positive for credit, negative for debit
-  type         String    // e.g. "deposit", "split", "transfer"
-  createdAt    DateTime  @default(now())
+  user         User             @relation("UserTransactions", fields: [userId], references: [id])
+  userId       String
+  amount       Decimal
+  type         TransactionType
+  createdAt    DateTime         @default(now())
 }
+
