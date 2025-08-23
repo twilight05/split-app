@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 interface JwtPayload {
   userId: string;
@@ -9,34 +9,37 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
-export const authenticateToken = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  let token: string | undefined;
-
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-  if (!token) {
-    return next(res.status(401).json({ message: "No token provided" }));
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayload;
-
-    req.userId = decoded.userId;
-
-next();
-
-  } catch (err) {
-    if (err instanceof jwt.TokenExpiredError) {
-      return next(res.status(401).json({ message: "Token expired" }));
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+      };
     }
-    return next(res.status(403).json({ message: "Invalid or expired token" }));
+  }
+}
+
+export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      res.status(401).json({ message: "No token, authorization denied" });
+      return; // Important: return after sending response
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    req.user = { userId: decoded.userId };
+    
+    // Set userId directly on request for AuthRequest interface
+    (req as AuthRequest).userId = decoded.userId;
+    
+    next(); // Call next() only if everything is successful
+  } catch (error) {
+    res.status(401).json({ message: "Token is not valid" });
+    return; // Important: return after sending response
   }
 };
+
+// Export the same function with different names for compatibility
+export const authenticateToken = authMiddleware;

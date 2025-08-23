@@ -1,14 +1,43 @@
-import express from "express";
-import { createWallet, deleteWallet, getWalletById, getWallets, updateWallet } from "../controllers/wallet.controller";
+import { Router } from "express";
 import { authenticateToken } from "../middleware/auth";
+import {
+  createWallet,
+  getUserWallets,
+  getWalletById,
+  updateWallet,
+  deleteWallet,
+  depositToMainWallet,
+  splitFunds,
+  getWalletTransactions
+} from "../controllers/wallet.controller";
 
+const router = Router();
 
-const router = express.Router();
+// All wallet routes require authentication
+router.use(authenticateToken);
 
-router.post("/create", authenticateToken, createWallet);
-router.get("/", authenticateToken, getWallets);
-router.get("/:id", authenticateToken, getWalletById);
-router.put("/:id", authenticateToken, updateWallet);
-router.delete("/:id", authenticateToken, deleteWallet);
+// Get all user wallets
+router.get("/", getUserWallets);
+
+// Create new wallet
+router.post("/", createWallet);
+
+// Deposit to main wallet
+router.post("/deposit", depositToMainWallet);
+
+// Split funds from main wallet
+router.post("/split", splitFunds);
+
+// Get specific wallet
+router.get("/:walletId", getWalletById);
+
+// Update wallet
+router.put("/:walletId", updateWallet);
+
+// Delete wallet
+router.delete("/:walletId", deleteWallet);
+
+// Get wallet transactions
+router.get("/:walletId/transactions", getWalletTransactions);
 
 export default router;

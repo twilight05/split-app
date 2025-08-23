@@ -1,106 +1,141 @@
-import {  Response, NextFunction } from "express";
+import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import WalletService from "../services/wallet.service";
 
-export const createWallet = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const createWallet = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, isMain, percentage } = req.body;
+    const { name } = req.body;
     const userId = req.userId!;
 
-  if (!name) {
-      return next(res.status(400).json({ message: "Wallet name is required" }));
+    if (!name?.trim()) {
+      res.status(400).json({ message: "Wallet name is required" });
+      return;
     }
 
-    if (isMain && (percentage !== null && percentage !== undefined && percentage < 0)) {
-      return next(res.status(400).json({ message: "Invalid percentage" }));
-    }
-    
-    const wallet = await WalletService.createWallet(name, isMain, percentage, userId);
-    res.status(201).json({ wallet });
-
+    const wallet = await WalletService.createWallet(name, false, null, userId);
+    res.status(201).json({ message: "Wallet created successfully", wallet });
   } catch (error: any) {
-    return next(res.status(500).json({ message: error.message || "Could not create wallet" }));
+    res.status(400).json({ message: error.message });
   }
-}
+};
 
-export const getWallets = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getUserWallets = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-
     const wallets = await WalletService.getWallets(userId);
-
-    res.status(200).json({ wallets });
+    res.json({ wallets });
   } catch (error: any) {
-    return next(res.status(500).json({ message: error.message || "Could not retrieve wallets" }));
+    res.status(400).json({ message: error.message });
   }
-}
+};
 
-export const getWalletById = async (req: AuthRequest, res: Response, next: NextFunction) => {
+// Export alias for routes compatibility
+export const getWallets = getUserWallets;
+
+export const getWalletById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const walletId = req.params.id;
+    const { walletId } = req.params;
+    const userId = req.userId!;
+    
+    const wallet = await WalletService.getWalletById(walletId, userId);
+    res.json({ wallet });
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+export const updateWallet = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { walletId } = req.params;
+    const { name } = req.body;
     const userId = req.userId!;
 
-    const wallet = await WalletService.getWalletById(walletId);
-    if (!wallet) {
-      return next(res.status(404).json({ message: "Wallet not found" }));
+    if (!name?.trim()) {
+      res.status(400).json({ message: "Wallet name is required" });
+      return;
     }
 
-    if (wallet.userId !== userId) {
-      return next(res.status(403).json({ message: "Unauthorized" }));
-    }
-
-    res.status(200).json({ wallet });
+    const wallet = await WalletService.updateWallet(walletId, userId, { name });
+    res.json({ message: "Wallet updated successfully", wallet });
   } catch (error: any) {
-    return next(res.status(500).json({ message: error.message || "Could not retrieve wallet" }));
+    res.status(400).json({ message: error.message });
   }
-}
+};
 
-export const updateWallet = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const deleteWallet = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const walletId = req.params.id;
+    const { walletId } = req.params;
     const userId = req.userId!;
-    const { name, isMain, percentage } = req.body;
-    const wallet = await WalletService.getWalletById(walletId);
-    if (!wallet) {
-      return next(res.status(404).json({ message: "Wallet not found" }));
-    }
-    if (wallet.userId !== userId) {
-      return next(res.status(403).json({ message: "Unauthorized" }));
-    }
-    if (isMain && (percentage !== null && percentage !== undefined && percentage < 0)) {
-      return next(res.status(400).json({ message: "Invalid percentage" }));
-    }
-    const updatedWallet = await WalletService.updateWallet(walletId, { name, isMain, percentage });
-    res.status(200).json({ wallet: updatedWallet });
-  }
-  catch (error: any) {
-    return next(res.status(500).json({ message: error.message || "Could not update wallet" }));
-  }
-}
 
-export const deleteWallet = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const walletId = req.params.id;
-    const userId = req.userId!;
-    const wallet = await WalletService.getWalletById(walletId);
-
-    if (!wallet) {
-      return next(res.status(404).json({ message: "Wallet not found" }));
-    } 
-
-    if (wallet.userId !== userId) {
-      return next(res.status(403).json({ message: "Unauthorized" }));
-    }
-
-    if (wallet.isMain) {
-      return next(res.status(400).json({ message: "Cannot delete main wallet" }));
-    }
-
-    await WalletService.deleteWallet(walletId);
-    res.status(200).json({ message: "Wallet deleted successfully" });
-
+    const result = await WalletService.deleteWallet(walletId, userId);
+    res.json(result);
   } catch (error: any) {
-    return next(res.status(500).json({ message: error.message || "Could not delete wallet" }));
+    res.status(400).json({ message: error.message });
   }
-}
+};
 
+export const depositToMainWallet = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { amount } = req.body;
+    const userId = req.userId!;
+
+    if (!amount || amount <= 0) {
+      res.status(400).json({ message: "Valid amount is required" });
+      return;
+    }
+
+    const wallet = await WalletService.depositToMainWallet(userId, Number(amount));
+    res.json({ message: "Deposit successful", wallet });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const splitFunds = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { splits } = req.body;
+    const userId = req.userId!;
+
+    if (!splits || !Array.isArray(splits) || splits.length === 0) {
+      res.status(400).json({ message: "Valid splits array is required" });
+      return;
+    }
+
+    // Validate splits
+    for (const split of splits) {
+      if (!split.walletId) {
+        res.status(400).json({ message: "Each split must have a walletId" });
+        return;
+      }
+      if (!split.amount && !split.percentage) {
+        res.status(400).json({ message: "Each split must have either amount or percentage" });
+        return;
+      }
+      if (split.amount && split.amount <= 0) {
+        res.status(400).json({ message: "Split amount must be positive" });
+        return;
+      }
+      if (split.percentage && (split.percentage <= 0 || split.percentage > 100)) {
+        res.status(400).json({ message: "Split percentage must be between 1-100" });
+        return;
+      }
+    }
+
+    const result = await WalletService.splitFunds(userId, splits);
+    res.json(result);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const getWalletTransactions = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { walletId } = req.params;
+    const userId = req.userId!;
+
+    const transactions = await WalletService.getWalletTransactions(walletId, userId);
+    res.json({ transactions });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};

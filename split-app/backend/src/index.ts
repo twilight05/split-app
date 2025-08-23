@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import walletRoutes from "./routes/wallet.routes";
-
+import { connectDB, disconnectDB } from "../prisma/prisma";
 
 dotenv.config();
 
@@ -23,6 +23,20 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  await connectDB();
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n Shutting down gracefully...');
+  await disconnectDB();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n Shutting down gracefully...');
+  await disconnectDB();
+  process.exit(0);
 });

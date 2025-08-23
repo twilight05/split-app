@@ -1,163 +1,210 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Button from "../components/Button";
-import appIcon from "../assets/images/AppIcon.svg";
-import fingerprint from "../assets/images/fingerprint.svg";
-import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FaSpinner } from "react-icons/fa";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { Eye, EyeOff, Mail, Phone, Lock } from "lucide-react";
+import { authAPI } from "../components/services/api";
 
-const Login = () => {
-  const [isEmailLogin, setIsEmailLogin] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  
+const Login: React.FC = () => {
+  const [isEmailLogin, setIsEmailLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: isEmailLogin ? email : undefined,
-          phoneNumber: !isEmailLogin ? phoneNumber : undefined,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+      const identifier = isEmailLogin ? email.trim() : phoneNumber.trim();
+      
+      if (!identifier || !password) {
+        toast.error(isEmailLogin ? "Email is required" : "Phone number is required");
+        setLoading(false);
+        return;
       }
 
-      // Save token to localStorage:
-      localStorage.setItem("token", data.token);
+      // Login
+      const loginData = await authAPI.login(identifier, password);
+      
+      if (!loginData.token) {
+        throw new Error(loginData.message || "Login failed");
+      }
 
-      // Navigate to dashboard:
+      // Save token and basic user data
+      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("user", JSON.stringify(loginData.user));
+
+      toast.success("Login successful!");
+      
+      // Fetch complete profile with wallets
+      try {
+        const profileData = await authAPI.getProfile();
+        localStorage.setItem("userProfile", JSON.stringify(profileData.user));
+      } catch (profileError) {
+        console.error("Failed to fetch profile:", profileError);
+      }
+
       navigate("/dashboard");
 
     } catch (error: any) {
-      alert(error.message); 
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#182338] text-white p-6 overflow-hidden">
-      {/* Logo + Welcome Text */}
-      <div className="pl-6 pt-6 flex flex-col place-items-start">
-        <img
-          src={appIcon}
-          alt="App Icon"
-          className="w-[80px] h-auto mb-4 pt-10"
-        />
-        <h2 className="text-4xl font-bold mt-8">Welcome Back</h2>
-        <p className="text-lg mt-2 mb-10">Sign in to continue</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#182338] via-[#223351] to-[#2a4365] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">SA</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">Split App</h1>
+          <p className="text-gray-300 text-sm">Manage your money efficiently</p>
+        </div>
 
-      {/* Login Box */}
-      <div className="flex flex-col items-center justify-center w-full">
-        <form
-          className="w-full max-w-xs flex flex-col gap-4"
-          onSubmit={handleLogin}
-        >
-          {/* Animate Email / Phone Switch */}
-          <AnimatePresence mode="wait">
-            {isEmailLogin ? (
-              <motion.input
-                key="email"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-                type="email"
-                placeholder="someone1234@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
-              />
-            ) : (
-              <motion.input
-                key="phone"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-                type="tel"
-                placeholder="903 401 2507"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
-              />
-            )}
-          </AnimatePresence>
+        {/* Login Form */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/20">
+          <h2 className="text-2xl font-bold text-white text-center mb-6">
+            Welcome Back
+          </h2>
 
-          {/* Switch Login Method */}
-          <p
-            className="text-sm text-pink-400 cursor-pointer text-left"
-            onClick={() => setIsEmailLogin(!isEmailLogin)}
-          >
-            Sign in with {isEmailLogin ? "phone number" : "email"} instead
-          </p>
-
-          {/* Password Input */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border-b border-gray-500 py-2 focus:outline-none focus:border-white text-center"
-            />
-            <div
-              className="absolute right-2 top-2 cursor-pointer text-gray-400"
-              onClick={() => setShowPassword(!showPassword)}
+          {/* Login Type Toggle */}
+          <div className="flex bg-white/10 rounded-xl p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => setIsEmailLogin(true)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+                isEmailLogin 
+                  ? "bg-white text-gray-900" 
+                  : "text-white hover:bg-white/10"
+              }`}
             >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </div>
+              <Mail className="w-4 h-4" />
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEmailLogin(false)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+                !isEmailLogin 
+                  ? "bg-white text-gray-900" 
+                  : "text-white hover:bg-white/10"
+              }`}
+            >
+              <Phone className="w-4 h-4" />
+              Phone
+            </button>
           </div>
 
-          {/* Forgot Password */}
-          <p className="text-sm text-pink-400 cursor-pointer text-right">
-            Forgot Password?
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email/Phone Input */}
+            <div className="space-y-2">
+              <label className="text-white text-sm font-medium">
+                {isEmailLogin ? "Email Address" : "Phone Number"}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                  {isEmailLogin ? (
+                    <Mail className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Phone className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+                {isEmailLogin ? (
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    required
+                  />
+                ) : (
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="Enter your phone number"
+                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    required
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label className="text-white text-sm font-medium">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Signing in...
+                </div>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-300 text-sm">
+              Don't have an account?{" "}
+              <button 
+                onClick={() => navigate("/signup")}
+                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+              >
+                Sign up
+              </button>
+            </p>
+          </div>
+        </div>
+
+        {/* Additional Info */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-400 text-xs">
+            Secure • Encrypted • Trusted
           </p>
-
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 py-2 rounded-full mt-2 flex items-center justify-center"
-            disabled={loading}
-          >
-            {loading ? (
-              <FaSpinner className="animate-spin text-white text-lg" />
-            ) : (
-              "Log in"
-            )}
-          </button>
-        </form>
-      </div>
-
-      {/* Biometric & Signup */}
-      <div className="mt-10 text-center">
-        <img
-          src={fingerprint}
-          alt="Biometric"
-          className="mx-auto w-12 h-12 mb-2"
-        />
-        <p className="text-sm">Use Biometrics</p>
-        <p className="text-sm mt-4">
-          Don't have an account?{" "}
-          <span className="text-pink-400 cursor-pointer">Sign up</span>
-        </p>
+        </div>
       </div>
     </div>
   );

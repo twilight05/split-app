@@ -18,8 +18,8 @@ enum TransactionType {
 model User {
   id         String      @id @default(uuid())
   name       String
-  phoneNumber String      @unique 
-  email      String      @unique
+  phoneNumber String?     @unique 
+  email      String?     @unique
   password   String      // hashed
   wallets    Wallet[] 
   transactions Transaction[] @relation("UserTransactions")
@@ -35,6 +35,8 @@ model Wallet {
   percentage   Int?            
   balance      Decimal         @default(0.0)
   transactions Transaction[]
+  createdAt    DateTime        @default(now())  
+  updatedAt    DateTime        @updatedAt       
 }
 
 model Transaction {

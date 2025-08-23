@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import {
   signupService,
   loginService,
@@ -7,10 +7,10 @@ import {
 import { AuthRequest } from "../middleware/auth";
 
 export const signup = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { name, password, email, phoneNumber } = req.body;
 
   try {
-    const user = await signupService(email, password);
+    const user = await signupService(name, password, email, phoneNumber);
     res.status(201).json({ message: "User created", userId: user.id });
   } catch (err: any) {
     res.status(400).json({ message: err.message || "Signup failed" });
@@ -18,23 +18,44 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body; 
 
   try {
-    const { token } = await loginService(email, password);
-    res.json({ message: "Login successful", token });
+    const { token, user } = await loginService(identifier, password);
+    res.json({
+       message: "Login successful", 
+       token,
+       user: {
+         id: user.id,
+         name: user.name,
+         email: user.email,
+         phoneNumber: user.phoneNumber,
+       }
+    });
   } catch (err: any) {
     res.status(401).json({ message: err.message || "Login failed" });
   }
 };
 
-export const getProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getProfile = async (req: AuthRequest, res: Response) => {
   const userId = req.userId!;
 
   try {
-    const user = await getProfileService(userId);
-    res.json({ user });
+    const userProfile = await getProfileService(userId);
+ 
+
+    const totalBalance = userProfile.wallets.reduce((sum, wallet) => {
+      return sum + Number(wallet.balance);
+    }, 0);
+
+    res.json({
+      user: {
+        ...userProfile,
+        totalBalance,
+        walletCount: userProfile.wallets.length,
+      }
+    });
   } catch (err: any) {
-    return next(res.status(404).json({ message: err.message || "Could not fetch profile" }));
+    res.status(404).json({ message: err.message || "Could not fetch profile" });
   }
 };

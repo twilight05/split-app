@@ -4,7 +4,7 @@ import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import SignupSuccess from "./pages/SignupSuccess";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./components/Dashboard";
 
 
 const App = () => {
