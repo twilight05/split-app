@@ -21,14 +21,20 @@ declare global {
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const token = req.header("Authorization")?.replace("Bearer ", "");
+    const authHeader = req.header("Authorization");
+    console.log('Auth header:', authHeader); // Debug log
+    
+    const token = authHeader?.replace("Bearer ", "");
 
     if (!token) {
+      console.log('No token provided'); // Debug log
       res.status(401).json({ message: "No token, authorization denied" });
       return; // Important: return after sending response
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    console.log('Token decoded:', decoded); // Debug log
+    
     req.user = { userId: decoded.userId };
     
     // Set userId directly on request for AuthRequest interface
@@ -36,6 +42,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     
     next(); // Call next() only if everything is successful
   } catch (error) {
+    console.error('Auth error:', error); // Debug log
     res.status(401).json({ message: "Token is not valid" });
     return; // Important: return after sending response
   }

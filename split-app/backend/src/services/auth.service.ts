@@ -98,6 +98,22 @@ export const loginService = async (identifier: string, password: string) => {
 };
 
 export const getProfileService = async (userId: string) => {
+  // Ensure user has a main wallet
+  const mainWallet = await prisma.wallet.findFirst({
+    where: { userId, isMain: true },
+  });
+
+  if (!mainWallet) {
+    await prisma.wallet.create({
+      data: {
+        userId,
+        name: "Main Wallet",
+        isMain: true,
+        balance: 0,
+      },
+    });
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {

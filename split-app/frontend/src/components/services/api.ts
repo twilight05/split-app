@@ -59,7 +59,7 @@ export const authAPI = {
 export const walletAPI = {
   // Get all user wallets
   getWallets: async () => {
-    const response = await fetch(`${API_BASE}/wallets`, {
+    const response = await fetch(`${API_BASE}/wallet`, {
       headers: getHeaders(),
     });
     
@@ -73,7 +73,7 @@ export const walletAPI = {
 
   // Create new wallet
   createWallet: async (name: string) => {
-    const response = await fetch(`${API_BASE}/wallets`, {
+    const response = await fetch(`${API_BASE}/wallet`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ name }),
@@ -89,7 +89,8 @@ export const walletAPI = {
 
   // Get specific wallet
   getWallet: async (walletId: string) => {
-    const response = await fetch(`${API_BASE}/wallets/${walletId}`, {
+    const response = await fetch(`${API_BASE}/wallet/${walletId}`, {
+
       headers: getHeaders(),
     });
     
@@ -103,7 +104,7 @@ export const walletAPI = {
 
   // Update wallet
   updateWallet: async (walletId: string, name: string) => {
-    const response = await fetch(`${API_BASE}/wallets/${walletId}`, {
+    const response = await fetch(`${API_BASE}/wallet/${walletId}`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify({ name }),
@@ -119,7 +120,7 @@ export const walletAPI = {
 
   // Delete wallet
   deleteWallet: async (walletId: string) => {
-    const response = await fetch(`${API_BASE}/wallets/${walletId}`, {
+    const response = await fetch(`${API_BASE}/wallet/${walletId}`, {
       method: "DELETE",
       headers: getHeaders(),
     });
@@ -134,7 +135,7 @@ export const walletAPI = {
 
   // Deposit to main wallet
   deposit: async (amount: number) => {
-    const response = await fetch(`${API_BASE}/wallets/deposit`, {
+    const response = await fetch(`${API_BASE}/wallet/deposit`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ amount }),
@@ -150,7 +151,7 @@ export const walletAPI = {
 
   // Split funds
   splitFunds: async (splits: { walletId: string; amount?: number; percentage?: number }[]) => {
-    const response = await fetch(`${API_BASE}/wallets/split`, {
+    const response = await fetch(`${API_BASE}/wallet/split`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ splits }),
@@ -166,7 +167,7 @@ export const walletAPI = {
 
   // Get wallet transactions
   getTransactions: async (walletId: string) => {
-    const response = await fetch(`${API_BASE}/wallets/${walletId}/transactions`, {
+    const response = await fetch(`${API_BASE}/wallet/${walletId}/transactions`, {
       headers: getHeaders(),
     });
     

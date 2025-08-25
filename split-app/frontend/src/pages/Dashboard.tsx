@@ -10,11 +10,14 @@ import {
   Wallet, 
   TrendingUp, 
   Activity,
-  CreditCard
+  CreditCard,
+  Sun,
+  Moon
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { authAPI, walletAPI } from "../components/services/api";
+import { useTheme } from "../contexts/ThemeContext";
 
 interface User {
   id: string;
@@ -64,10 +67,13 @@ const Dashboard: React.FC = () => {
   const [newWalletName, setNewWalletName] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
   const [splitAmount, setSplitAmount] = useState("");
+  const [splitPercentage, setSplitPercentage] = useState("");
+  const [splitType, setSplitType] = useState<"amount" | "percentage">("amount");
   const [selectedWallet, setSelectedWallet] = useState("");
   const [transactionFilter, setTransactionFilter] = useState("All");
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     fetchUserData();
@@ -91,6 +97,7 @@ const Dashboard: React.FC = () => {
             setTransactions(transData.transactions || []);
           } catch (transError) {
             console.log("No transactions yet");
+            setTransactions([]);
           }
         }
       }
@@ -162,22 +169,35 @@ const Dashboard: React.FC = () => {
 
   const handleSplit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseFloat(splitAmount);
     
-    if (!amount || amount <= 0) {
-      toast.error("Valid amount is required");
-      return;
-    }
-
     if (!selectedWallet) {
       toast.error("Please select a wallet");
       return;
     }
 
+    let splitData: { walletId: string; amount?: number; percentage?: number };
+
+    if (splitType === "amount") {
+      const amount = parseFloat(splitAmount);
+      if (!amount || amount <= 0) {
+        toast.error("Valid amount is required");
+        return;
+      }
+      splitData = { walletId: selectedWallet, amount };
+    } else {
+      const percentage = parseFloat(splitPercentage);
+      if (!percentage || percentage <= 0 || percentage > 100) {
+        toast.error("Percentage must be between 1 and 100");
+        return;
+      }
+      splitData = { walletId: selectedWallet, percentage };
+    }
+
     try {
-      await walletAPI.splitFunds([{ walletId: selectedWallet, amount }]);
+      await walletAPI.splitFunds([splitData]);
       toast.success("Funds split successfully");
       setSplitAmount("");
+      setSplitPercentage("");
       setSelectedWallet("");
       setShowSplitModal(false);
       fetchUserData();
@@ -213,11 +233,23 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
+      <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${
+        theme === 'dark' 
+          ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' 
+          : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'
+      }`}>
+        <div className={`backdrop-blur-sm rounded-2xl p-8 shadow-2xl border ${
+          theme === 'dark'
+            ? 'bg-gray-800/80 border-gray-700/20'
+            : 'bg-white/80 border-white/20'
+        }`}>
           <div className="flex flex-col items-center space-y-4">
             <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-lg font-medium text-gray-700">Loading your dashboard...</p>
+            <p className={`text-lg font-medium ${
+              theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+            }`}>
+              Loading your dashboard...
+            </p>
           </div>
         </div>
       </div>
@@ -225,7 +257,11 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <div className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${
+      theme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' 
+        : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'
+    }`}>
       {/* Background Pattern */}
       <div 
         className="absolute inset-0 opacity-[0.015]"
@@ -280,23 +316,20 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Header */}
-      <header className="relative z-10 bg-white/60 backdrop-blur-xl border-b border-white/20 sticky top-0">
+      <header className={`relative z-10 backdrop-blur-xl border-b sticky top-0 transition-colors duration-300 ${
+        theme === 'dark'
+          ? 'bg-gray-800/60 border-gray-700/20'
+          : 'bg-white/60 border-white/20'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo & Brand */}
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Wallet className="h-6 w-6 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  SplitWallet
-                </h1>
-                <p className="text-sm text-gray-600 font-medium">
-                  Welcome back, <span className="text-blue-600">{user?.name || 'User'}</span>
+            {/* Welcome Message */}
+            <div className="flex items-center">
+              <div>
+                <p className={`text-lg font-medium ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  Welcome back, <span className="text-blue-500 font-semibold">{user?.name || 'User'}</span>
                 </p>
               </div>
             </div>
@@ -304,17 +337,46 @@ const Dashboard: React.FC = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-6">
               <div className="flex items-center space-x-4">
-                <button className="relative p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group">
+                {/* Theme Toggle */}
+                <button
+                  onClick={toggleTheme}
+                  className={`p-3 rounded-xl transition-all duration-300 group ${
+                    theme === 'dark'
+                      ? 'text-gray-300 hover:text-blue-400 hover:bg-gray-700/50'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  <div className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs py-1 px-2 rounded-lg whitespace-nowrap ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 text-gray-200'
+                      : 'bg-gray-900 text-white'
+                  }`}>
+                    {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                  </div>
+                </button>
+
+                <button className={`relative p-3 rounded-xl transition-all duration-300 group ${
+                  theme === 'dark'
+                    ? 'text-gray-300 hover:text-blue-400 hover:bg-gray-700/50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                }`}>
                   <Bell className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">
                     3
                   </span>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs py-1 px-2 rounded-lg whitespace-nowrap">
+                  <div className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs py-1 px-2 rounded-lg whitespace-nowrap ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 text-gray-200'
+                      : 'bg-gray-900 text-white'
+                  }`}>
                     New notifications
                   </div>
                 </button>
                 
-                <div className="h-6 w-px bg-gray-300"></div>
+                <div className={`h-6 w-px ${
+                  theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
+                }`}></div>
                 
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -324,7 +386,11 @@ const Dashboard: React.FC = () => {
                   </div>
                   <button 
                     onClick={handleLogout}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 group"
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 group ${
+                      theme === 'dark'
+                        ? 'text-gray-300 hover:text-red-400 hover:bg-red-900/30'
+                        : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
+                    }`}
                   >
                     <LogOut className="h-4 w-4" />
                     <span className="text-sm font-medium">Sign Out</span>
@@ -336,7 +402,11 @@ const Dashboard: React.FC = () => {
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+              className={`lg:hidden p-2 rounded-xl transition-all ${
+                theme === 'dark'
+                  ? 'text-gray-300 hover:text-blue-400 hover:bg-gray-700/50'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+              }`}
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -696,41 +766,135 @@ const Dashboard: React.FC = () => {
       {/* Split Modal */}
       {showSplitModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md border border-gray-200 shadow-2xl">
+          <div className={`rounded-3xl w-full max-w-md border shadow-2xl ${
+            theme === 'dark' 
+              ? 'bg-gray-800 border-gray-700' 
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="p-8">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <ArrowUpDown className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Split Funds</h3>
-                <p className="text-gray-600">Transfer money from main wallet to another wallet</p>
+                <h3 className={`text-2xl font-bold mb-2 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Split Funds
+                </h3>
+                <p className={`${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  Transfer money from main wallet to another wallet
+                </p>
               </div>
               <form onSubmit={handleSplit}>
                 <div className="space-y-6">
+                  {/* Split Type Toggle */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-3 block">
-                      Amount (₦)
+                    <label className={`text-sm font-semibold mb-3 block ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
+                      Split Method
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      max={mainWallet ? parseFloat(mainWallet.balance) : 0}
-                      value={splitAmount}
-                      onChange={(e) => setSplitAmount(e.target.value)}
-                      placeholder="5000"
-                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      required
-                    />
+                    <div className={`flex rounded-xl p-1 ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <button
+                        type="button"
+                        onClick={() => setSplitType("amount")}
+                        className={`flex-1 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+                          splitType === "amount"
+                            ? theme === 'dark'
+                              ? "bg-gray-600 text-white"
+                              : "bg-white text-gray-900 shadow-md"
+                            : theme === 'dark'
+                              ? "text-gray-300 hover:bg-gray-600"
+                              : "text-gray-600 hover:bg-white/50"
+                        }`}
+                      >
+                        Fixed Amount
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSplitType("percentage")}
+                        className={`flex-1 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+                          splitType === "percentage"
+                            ? theme === 'dark'
+                              ? "bg-gray-600 text-white"
+                              : "bg-white text-gray-900 shadow-md"
+                            : theme === 'dark'
+                              ? "text-gray-300 hover:bg-gray-600"
+                              : "text-gray-600 hover:bg-white/50"
+                        }`}
+                      >
+                        Percentage
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Amount or Percentage Input */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-3 block">
+                    <label className={`text-sm font-semibold mb-3 block ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
+                      {splitType === "amount" ? "Amount (₦)" : "Percentage (%)"}
+                    </label>
+                    {splitType === "amount" ? (
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="1"
+                        max={mainWallet ? parseFloat(mainWallet.balance) : 0}
+                        value={splitAmount}
+                        onChange={(e) => setSplitAmount(e.target.value)}
+                        placeholder="5000"
+                        className={`w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500'
+                        }`}
+                        required
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        max="100"
+                        value={splitPercentage}
+                        onChange={(e) => setSplitPercentage(e.target.value)}
+                        placeholder="25"
+                        className={`w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500'
+                        }`}
+                        required
+                      />
+                    )}
+                    {splitType === "percentage" && mainWallet && (
+                      <p className={`text-xs mt-2 ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {splitPercentage && `≈ ₦${(parseFloat(mainWallet.balance) * parseFloat(splitPercentage) / 100).toLocaleString()}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={`text-sm font-semibold mb-3 block ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
                       Transfer to Wallet
                     </label>
                     <select
                       value={selectedWallet}
                       onChange={(e) => setSelectedWallet(e.target.value)}
-                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className={`w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-gray-50 border-gray-200 text-gray-900'
+                      }`}
                       required
                     >
                       <option value="">Select a wallet</option>
@@ -750,8 +914,17 @@ const Dashboard: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShowSplitModal(false)}
-                      className="flex-1 bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                      onClick={() => {
+                        setShowSplitModal(false);
+                        setSplitAmount("");
+                        setSplitPercentage("");
+                        setSelectedWallet("");
+                      }}
+                      className={`flex-1 py-4 rounded-xl font-semibold transition-all ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                     >
                       Cancel
                     </button>

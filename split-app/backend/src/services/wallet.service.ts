@@ -49,6 +49,9 @@ class WalletService {
 };
 
     async getWallets(userId: string) {
+    // Ensure user has a main wallet
+    await this.ensureMainWallet(userId);
+    
     const wallets = await prisma.wallet.findMany({
       where: { userId },
      orderBy: [
@@ -57,6 +60,24 @@ class WalletService {
       ],
     });
     return wallets;
+  }
+
+  // Helper method to ensure user has a main wallet
+  async ensureMainWallet(userId: string) {
+    const mainWallet = await prisma.wallet.findFirst({
+      where: { userId, isMain: true },
+    });
+
+    if (!mainWallet) {
+      await prisma.wallet.create({
+        data: {
+          userId,
+          name: "Main Wallet",
+          isMain: true,
+          balance: 0,
+        },
+      });
+    }
   }
 
     async getWalletById(walletId: string, userId: string) {
@@ -107,7 +128,7 @@ class WalletService {
     });
     return wallet;
   }
-    async deleteWallet(walletId: string, userId: string) { // Added userId parameter
+    async deleteWallet(walletId: string, userId: string) {
     const wallet = await prisma.wallet.findFirst({
       where: { id: walletId, userId }
     });
@@ -130,6 +151,9 @@ class WalletService {
   }
 
     async depositToMainWallet(userId: string, amount: number) {
+    // Ensure user has a main wallet
+    await this.ensureMainWallet(userId);
+    
     const mainWallet = await prisma.wallet.findFirst({
       where: {
         userId,
@@ -169,6 +193,9 @@ class WalletService {
     userId: string, 
     splits: { walletId: string; amount?: number; percentage?: number }[]
   ) {
+    // Ensure user has a main wallet
+    await this.ensureMainWallet(userId);
+    
     const mainWallet = await prisma.wallet.findFirst({
       where: {
         userId,

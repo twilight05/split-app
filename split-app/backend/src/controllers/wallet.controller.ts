@@ -7,6 +7,8 @@ export const createWallet = async (req: AuthRequest, res: Response): Promise<voi
     const { name } = req.body;
     const userId = req.userId!;
 
+    console.log('Creating wallet:', { name, userId }); // Debug log
+
     if (!name?.trim()) {
       res.status(400).json({ message: "Wallet name is required" });
       return;
@@ -15,6 +17,7 @@ export const createWallet = async (req: AuthRequest, res: Response): Promise<voi
     const wallet = await WalletService.createWallet(name, false, null, userId);
     res.status(201).json({ message: "Wallet created successfully", wallet });
   } catch (error: any) {
+    console.error('Wallet creation error:', error); // Debug log
     res.status(400).json({ message: error.message });
   }
 };
@@ -79,6 +82,8 @@ export const depositToMainWallet = async (req: AuthRequest, res: Response): Prom
     const { amount } = req.body;
     const userId = req.userId!;
 
+    console.log('Deposit attempt:', { amount, userId }); // Debug log
+
     if (!amount || amount <= 0) {
       res.status(400).json({ message: "Valid amount is required" });
       return;
@@ -87,6 +92,7 @@ export const depositToMainWallet = async (req: AuthRequest, res: Response): Prom
     const wallet = await WalletService.depositToMainWallet(userId, Number(amount));
     res.json({ message: "Deposit successful", wallet });
   } catch (error: any) {
+    console.error('Deposit error:', error); // Debug log
     res.status(400).json({ message: error.message });
   }
 };
