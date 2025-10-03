@@ -12,7 +12,8 @@ const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
   "http://localhost:5173", // local dev
-  "https://split-app-zeta.vercel.app" // your production frontend
+  "http://localhost:3000", // alternative local dev
+  ...(process.env.CLIENT_URLS ? process.env.CLIENT_URLS.split(',').map(url => url.trim()) : [])
 ];
 
 app.use(cors({
