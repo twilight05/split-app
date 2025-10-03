@@ -65,16 +65,13 @@ const Signup: React.FC = () => {
         isEmailSignup ? undefined : phoneNumber.trim()
       );
       
-      if (!signupData.token) {
+      // Check if signup was successful
+      if (signupData.message === "User created" && signupData.userId) {
+        toast.success("Account created successfully!");
+        navigate("/login");
+      } else {
         throw new Error(signupData.message || "Signup failed");
       }
-
-      // Save token and user data
-      localStorage.setItem("token", signupData.token);
-      localStorage.setItem("user", JSON.stringify(signupData.user));
-
-      toast.success("Signup successful!");
-      navigate("/signup-success");
 
     } catch (error: any) {
       console.error("Signup error:", error);

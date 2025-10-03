@@ -5,13 +5,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
-    "start": "ts-node src/index.ts",
+    "start": "node dist/src/index.js",
     "build": "prisma generate --schema=./prisma/schema.prisma && tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema=./prisma/schema.prisma",
-    "prisma:seed": "prisma db seed --schema=./prisma/schema.prisma"
+    "prisma:seed": "prisma db seed --schema=./prisma/schema.prisma",
+    "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma --force",
+    "db:push": "prisma db push --schema=./prisma/schema.prisma"
   },
   "author": "Anne",
   "license": "ISC",

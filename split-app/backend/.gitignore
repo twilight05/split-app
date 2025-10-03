@@ -16,6 +16,10 @@ logs/
 dist/
 build/
 
+# Compiled JavaScript files in src (from TypeScript)
+src/**/*.js
+src/**/*.js.map
+
 # OS-specific files
 .DS_Store
 Thumbs.db
