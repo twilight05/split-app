@@ -18,7 +18,7 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, themeClasses, spacing, buttons, cn } = useTheme();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,71 +85,59 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-300 ${
+    <div className={cn(
+      'min-h-screen flex items-center justify-center transition-colors duration-300 px-4 py-4',
       theme === 'dark' 
-        ? 'bg-gradient-to-br from-[#182338] via-[#223351] to-[#2a4365]' 
-        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-    }`}>
+        ? 'bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-800' 
+        : 'bg-gradient-to-br from-indigo-50 via-white to-violet-50'
+    )}>
       <div className="w-full max-w-md">
         {/* Theme Toggle */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 sm:mb-6">
           <button
             onClick={toggleTheme}
-            className={`p-3 rounded-xl transition-all ${
+            className={cn(
+              'p-3 rounded-2xl transition-all duration-300',
               theme === 'dark'
-                ? 'bg-white/10 text-white hover:bg-white/20'
-                : 'bg-white/80 text-gray-700 hover:bg-white shadow-lg'
-            }`}
+                ? 'bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                : 'bg-white/80 backdrop-blur-sm border border-indigo-100 text-slate-600 hover:bg-white hover:text-indigo-600 shadow-sm'
+            )}
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center`}>
-            <span className="text-white text-2xl font-bold">SA</span>
-          </div>
-          <h1 className={`text-3xl font-bold mb-2 ${
-            theme === 'dark' ? 'text-white' : 'text-gray-900'
-          }`}>
-            Split App
-          </h1>
-          <p className={`text-sm ${
-            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-          }`}>
-            Create your account
-          </p>
-        </div>
-
         {/* Signup Form */}
-        <div className={`backdrop-blur-lg rounded-2xl p-6 sm:p-8 border transition-all ${
+        <div className={cn(
+          'backdrop-blur-xl rounded-3xl transition-all duration-300',
+          spacing.modal.padding,
           theme === 'dark'
-            ? 'bg-white/10 border-white/20'
-            : 'bg-white/80 border-white/40 shadow-xl'
-        }`}>
-          <h2 className={`text-2xl font-bold text-center mb-6 ${
-            theme === 'dark' ? 'text-white' : 'text-gray-900'
-          }`}>
+            ? 'bg-slate-800/40 border border-slate-700/50 shadow-2xl shadow-black/20'
+            : 'bg-white/70 border border-white/20 shadow-2xl shadow-indigo-500/10'
+        )}>
+          <h2 className={cn(
+            'text-2xl font-bold text-center mb-8',
+            theme === 'dark' ? 'text-white' : 'text-slate-900'
+          )}>
             Create Account
           </h2>
 
           {/* Signup Type Toggle */}
-          <div className={`flex rounded-xl p-1 mb-6 ${
-            theme === 'dark' ? 'bg-white/10' : 'bg-gray-100'
-          }`}>
+          <div className={cn(
+            'flex rounded-2xl p-1 mb-8',
+            theme === 'dark' ? 'bg-slate-700/50' : 'bg-slate-100/80'
+          )}>
             <button
               type="button"
               onClick={() => setIsEmailSignup(true)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all text-sm font-medium',
                 isEmailSignup 
-                  ? theme === 'dark'
-                    ? "bg-white text-gray-900"
-                    : "bg-white text-gray-900 shadow-md"
-                  : theme === 'dark'
-                    ? "text-white hover:bg-white/10"
-                    : "text-gray-600 hover:bg-white/50"
-              }`}
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
+                  : cn(
+                      theme === 'dark' ? 'text-slate-400 hover:text-white hover:bg-slate-600/50' : 'text-slate-600 hover:text-indigo-600 hover:bg-white/50'
+                    )
+              )}
             >
               <Mail className="w-4 h-4" />
               Email
@@ -157,32 +145,32 @@ const Signup: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsEmailSignup(false)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all text-sm font-medium ${
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all text-sm font-medium',
                 !isEmailSignup 
-                  ? theme === 'dark'
-                    ? "bg-white text-gray-900"
-                    : "bg-white text-gray-900 shadow-md"
-                  : theme === 'dark'
-                    ? "text-white hover:bg-white/10"
-                    : "text-gray-600 hover:bg-white/50"
-              }`}
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
+                  : cn(
+                      theme === 'dark' ? 'text-slate-400 hover:text-white hover:bg-slate-600/50' : 'text-slate-600 hover:text-indigo-600 hover:bg-white/50'
+                    )
+              )}
             >
               <Phone className="w-4 h-4" />
               Phone
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Input */}
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${
-                theme === 'dark' ? 'text-white' : 'text-gray-700'
-              }`}>
+              <label className={cn(
+                'text-sm font-semibold block',
+                theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+              )}>
                 Full Name
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <User className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center">
+                  <User className={cn('w-5 h-5', themeClasses.text.muted)} />
                 </div>
                 <input
                   type="text"
@@ -190,11 +178,13 @@ const Signup: React.FC = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter your full name"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={cn(
+                    'w-full pl-12 pr-4 py-4 border rounded-2xl transition-all duration-300',
+                    'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500',
                     theme === 'dark'
-                      ? 'bg-white/10 border-white/20 text-white placeholder-gray-400'
-                      : 'bg-white/50 border-gray-200 text-gray-900 placeholder-gray-500'
-                  }`}
+                      ? 'bg-slate-800/50 border-slate-600/50 text-white placeholder-slate-400 focus:bg-slate-800/70'
+                      : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white'
+                  )}
                   required
                 />
               </div>
@@ -202,17 +192,18 @@ const Signup: React.FC = () => {
 
             {/* Email/Phone Input */}
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${
-                theme === 'dark' ? 'text-white' : 'text-gray-700'
-              }`}>
+              <label className={cn(
+                'text-sm font-semibold block',
+                theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+              )}>
                 {isEmailSignup ? "Email Address" : "Phone Number"}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center">
                   {isEmailSignup ? (
-                    <Mail className="w-5 h-5 text-gray-400" />
+                    <Mail className={cn('w-5 h-5', themeClasses.text.muted)} />
                   ) : (
-                    <Phone className="w-5 h-5 text-gray-400" />
+                    <Phone className={cn('w-5 h-5', themeClasses.text.muted)} />
                   )}
                 </div>
                 {isEmailSignup ? (
@@ -222,11 +213,13 @@ const Signup: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    className={cn(
+                      'w-full pl-12 pr-4 py-4 border rounded-2xl transition-all duration-300',
+                      'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500',
                       theme === 'dark'
-                        ? 'bg-white/10 border-white/20 text-white placeholder-gray-400'
-                        : 'bg-white/50 border-gray-200 text-gray-900 placeholder-gray-500'
-                    }`}
+                        ? 'bg-slate-800/50 border-slate-600/50 text-white placeholder-slate-400 focus:bg-slate-800/70'
+                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white'
+                    )}
                     required
                   />
                 ) : (
@@ -236,11 +229,13 @@ const Signup: React.FC = () => {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="Enter your phone number"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    className={cn(
+                      'w-full pl-12 pr-4 py-4 border rounded-2xl transition-all duration-300',
+                      'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500',
                       theme === 'dark'
-                        ? 'bg-white/10 border-white/20 text-white placeholder-gray-400'
-                        : 'bg-white/50 border-gray-200 text-gray-900 placeholder-gray-500'
-                    }`}
+                        ? 'bg-slate-800/50 border-slate-600/50 text-white placeholder-slate-400 focus:bg-slate-800/70'
+                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white'
+                    )}
                     required
                   />
                 )}
@@ -249,14 +244,15 @@ const Signup: React.FC = () => {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${
-                theme === 'dark' ? 'text-white' : 'text-gray-700'
-              }`}>
+              <label className={cn(
+                'text-sm font-semibold block',
+                theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+              )}>
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <Lock className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center">
+                  <Lock className={cn('w-5 h-5', themeClasses.text.muted)} />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -264,21 +260,23 @@ const Signup: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={cn(
+                    'w-full pl-12 pr-14 py-4 border rounded-2xl transition-all duration-300',
+                    'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500',
                     theme === 'dark'
-                      ? 'bg-white/10 border-white/20 text-white placeholder-gray-400'
-                      : 'bg-white/50 border-gray-200 text-gray-900 placeholder-gray-500'
-                  }`}
+                      ? 'bg-slate-800/50 border-slate-600/50 text-white placeholder-slate-400 focus:bg-slate-800/70'
+                      : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white'
+                  )}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute inset-y-0 right-0 pr-3 flex items-center transition-colors ${
-                    theme === 'dark'
-                      ? 'text-gray-400 hover:text-white'
-                      : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                  className={cn(
+                    'absolute inset-y-0 right-0 pr-4 flex items-center transition-colors',
+                    themeClasses.text.muted,
+                    'hover:text-primary-600 dark:hover:text-primary-400'
+                  )}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -291,14 +289,15 @@ const Signup: React.FC = () => {
 
             {/* Confirm Password Input */}
             <div className="space-y-2">
-              <label className={`text-sm font-medium ${
-                theme === 'dark' ? 'text-white' : 'text-gray-700'
-              }`}>
+              <label className={cn(
+                'text-sm font-semibold block',
+                theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+              )}>
                 Confirm Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <Lock className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center">
+                  <Lock className={cn('w-5 h-5', themeClasses.text.muted)} />
                 </div>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -306,21 +305,23 @@ const Signup: React.FC = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirm your password"
-                  className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={cn(
+                    'w-full pl-12 pr-14 py-4 border rounded-2xl transition-all duration-300',
+                    'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500',
                     theme === 'dark'
-                      ? 'bg-white/10 border-white/20 text-white placeholder-gray-400'
-                      : 'bg-white/50 border-gray-200 text-gray-900 placeholder-gray-500'
-                  }`}
+                      ? 'bg-slate-800/50 border-slate-600/50 text-white placeholder-slate-400 focus:bg-slate-800/70'
+                      : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white'
+                  )}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className={`absolute inset-y-0 right-0 pr-3 flex items-center transition-colors ${
-                    theme === 'dark'
-                      ? 'text-gray-400 hover:text-white'
-                      : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                  className={cn(
+                    'absolute inset-y-0 right-0 pr-4 flex items-center transition-colors',
+                    themeClasses.text.muted,
+                    'hover:text-primary-600 dark:hover:text-primary-400'
+                  )}
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -332,31 +333,44 @@ const Signup: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Creating account...
-                </div>
-              ) : (
-                "Create Account"
-              )}
-            </button>
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className={cn(
+                  'w-full py-4 px-6 rounded-2xl font-semibold transition-all',
+                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                  buttons.primary
+                )}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Creating account...
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+            </div>
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className={`text-sm ${
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-            }`}>
+          <div className="mt-10 text-center">
+            <p className={cn(
+              'text-sm',
+              theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+            )}>
               Already have an account?{" "}
               <button 
                 onClick={() => navigate("/login")}
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                className={cn(
+                  'font-semibold transition-colors',
+                  theme === 'dark' 
+                    ? 'text-indigo-400 hover:text-indigo-300' 
+                    : 'text-indigo-600 hover:text-indigo-700'
+                )}
               >
                 Sign in
               </button>
@@ -366,9 +380,10 @@ const Signup: React.FC = () => {
 
         {/* Additional Info */}
         <div className="mt-6 text-center">
-          <p className={`text-xs ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`}>
+          <p className={cn(
+            'text-xs',
+            theme === 'dark' ? 'text-slate-500' : 'text-slate-500'
+          )}>
             Secure • Encrypted • Trusted
           </p>
         </div>

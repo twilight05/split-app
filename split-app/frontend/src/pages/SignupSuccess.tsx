@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
-import successIcon from "../assets/images/successIcon.svg";
+import successIcon from "../assets/images/SuccessIcon.svg";
 
 const SignupSuccess: React.FC = () => {
   const navigate = useNavigate();

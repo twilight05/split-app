@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // Get auth token
 const getAuthToken = () => localStorage.getItem("token");
@@ -174,6 +174,113 @@ export const walletAPI = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to fetch transactions");
+    }
+    
+    return response.json();
+  }
+};
+
+// Notification API
+export const notificationAPI = {
+  // Get all notifications
+  getNotifications: async () => {
+    const response = await fetch(`${API_BASE}/notifications`, {
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch notifications");
+    }
+    
+    return response.json();
+  },
+
+  // Mark notification as read
+  markAsRead: async (notificationId: string) => {
+    const response = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to mark notification as read");
+    }
+    
+    return response.json();
+  },
+
+  // Mark notification as unread
+  markAsUnread: async (notificationId: string) => {
+    const response = await fetch(`${API_BASE}/notifications/${notificationId}/unread`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to mark notification as unread");
+    }
+    
+    return response.json();
+  },
+
+  // Mark all notifications as read
+  markAllAsRead: async () => {
+    const response = await fetch(`${API_BASE}/notifications/read-all`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to mark all notifications as read");
+    }
+    
+    return response.json();
+  },
+
+  // Delete notification
+  deleteNotification: async (notificationId: string) => {
+    const response = await fetch(`${API_BASE}/notifications/${notificationId}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete notification");
+    }
+    
+    return response.json();
+  },
+
+  // Delete multiple notifications
+  deleteMultiple: async (notificationIds: string[]) => {
+    const response = await fetch(`${API_BASE}/notifications/bulk-delete`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ notificationIds }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete notifications");
+    }
+    
+    return response.json();
+  },
+
+  // Get unread count
+  getUnreadCount: async () => {
+    const response = await fetch(`${API_BASE}/notifications/unread-count`, {
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch unread count");
     }
     
     return response.json();
