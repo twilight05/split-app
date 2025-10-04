@@ -63,6 +63,7 @@ const Dashboard: React.FC = () => {
   const [wallets, setWallets] = useState<WalletType[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [depositLoading, setDepositLoading] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showCreateWallet, setShowCreateWallet] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -168,6 +169,7 @@ const Dashboard: React.FC = () => {
     }
 
     try {
+      setDepositLoading(true);
       await walletAPI.deposit(amount);
       toast.success("Deposit successful");
       setDepositAmount("");
@@ -175,6 +177,8 @@ const Dashboard: React.FC = () => {
       fetchUserData();
     } catch (error: any) {
       toast.error(error.message || "Failed to deposit");
+    } finally {
+      setDepositLoading(false);
     }
   };
 
@@ -940,9 +944,17 @@ const Dashboard: React.FC = () => {
                   <div className="flex gap-3 pt-2">
                     <button
                       type="submit"
-                      className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg"
+                      disabled={depositLoading}
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-emerald-500 disabled:hover:to-emerald-600"
                     >
-                      Deposit
+                      {depositLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        "Deposit"
+                      )}
                     </button>
                     <button
                       type="button"
